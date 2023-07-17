@@ -15,13 +15,18 @@ const renderCountry = function (data, className = '') {
     <p class="country__row"><span>👫</span>${(
       +data.population / 1000000
     ).toFixed(1)} people</p>
-    <p class="country__row"><span>🗣️</span>${data.languages}</p>
+    <p class="country__row"><span>🗣️</span>${data.languages.pol}</p>
     <p class="country__row"><span>💰</span>${data.currencies}</p>
   </div>
   </article>
   `;
 
   countriesContainer.insertAdjacentHTML('beforeend', html);
+  countriesContainer.style.opacity = 1;
+};
+
+const renderError = function (msg) {
+  countriesContainer.insertAdjacentText('beforeend', msg);
   countriesContainer.style.opacity = 1;
 };
 
@@ -56,7 +61,23 @@ const renderCountry = function (data, className = '') {
 const getCountryData = function (country) {
   fetch(`https://restcountries.com/v3.1/name/${country}`)
     .then(response => response.json())
-    .then(data => renderCountry(data[0]));
+    .then(data => {
+      renderCountry(data[0]);
+
+      console.log(data[0]);
+
+      const neighbour = data[0].borders?.[0];
+      return fetch(`https://restcountries.com/v3.1/alpha/${neighbour}`);
+    })
+    .then(response => response.json())
+    .then(data => {
+      renderCountry(data[0], 'neighbour');
+    })
+    .catch(err =>
+      renderError(`Something went wrong ${err.message}. Try again! `)
+    );
 };
 
-getCountryData('poland');
+btn.addEventListener('click', () => {
+  getCountryData('portugal');
+});
